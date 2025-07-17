@@ -1,0 +1,238 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b3a8b99c-6c96-4227-8a9c-a8f4bcadc097",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "cityName": "são paulo, br",
+        "language": "pt-br"
+      },
+      "type": "n8n-nodes-base.openWeatherMap",
+      "typeVersion": 1,
+      "position": [
+        624,
+        0
+      ],
+      "id": "286600f7-730d-4879-b641-b7aac649b034",
+      "name": "OpenWeatherMap",
+      "credentials": {
+        "openWeatherMapApi": {
+          "id": "HxXPDv0pMhKB68jd",
+          "name": "OpenWeatherMap account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Você é um assistente pessoal que envia todos os dias um e-mail com recomendações de roupas com base na previsão do tempo. O usuário irá fornecer dados JSON da API da OpenWeather para o dia atual.\n\nSua tarefa é gerar um e-mail diário em HTML com base na previsão do tempo para o dia, usando os dados abaixo (provenientes da API da OpenWeather). \n\nObjetivo:\n- Criar um e-mail HTML simples, bonito e compatível com Gmail.\n- Informar a previsão do tempo com base nos dados fornecidos.\n- Escrever de forma clara, simpática e natural.\n- Colocar o conteúdo dentro de uma estrutura de e-mail com <html>, <head> e <body>.\n\nInstruções:\n1. Extraia as informações de temperatura, sensação térmica, mínima, máxima, umidade, vento e condição (ex: chuva, nublado).\n2. Gere um parágrafo descrevendo a previsão do tempo em linguagem acessível.\n3. Crie um título do e-mail: **\"☀️ Bom dia! Aqui está a previsão do tempo de hoje\"**\n4. Use tags HTML como <h1>, <p>, <ul>, etc. com emojis se apropriado.\n5. Não use CSS externo ou JavaScript — apenas HTML inline compatível com Gmail.\n6. Finalize com uma frase simpática como: *\"Tenha um ótimo dia! 😊\"*\n\nJSON do clima (substitua por dados reais ao enviar):\n```json\n{\n  \"main\": {\n    \n    \"temp\":  {{ $json.main.temp }},\n    \"feels_like\": {{ $json.main.feels_like }},\n    \"temp_min\": {{ $json.main.temp_min }},\n    \"temp_max\": {{ $json.main.temp_max }},\n    \"humidity\": {{ $json.main.humidity }}\n  },\n  \"weather\": [\n    {\n      \"main\": \"Rain\",\n      \"description\": \"light rain\"\n    }\n  ],\n  \"wind\": {\n    \"speed\": {{ $json.wind.speed }}\n  }\n  \"Readable_date\": {\n  \"Readable_date\": {{ $('Schedule Trigger').item.json['Readable date'] }},\n\n  }\n}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        832,
+        0
+      ],
+      "id": "2d5987ee-363a-416f-8439-54c785a01afb",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        880,
+        192
+      ],
+      "id": "6a804c67-1128-4935-88e4-a33a95d0d238",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "2qTUzD1ZV1PS9RNq",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Edit Fields').item.json.Email }}",
+        "subject": "=Bom dia, Previão de Hoje!",
+        "message": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1168,
+        0
+      ],
+      "id": "ff96f057-b5f4-44e1-b54d-dc48b94699fb",
+      "name": "Send a message",
+      "webhookId": "fdcdc7f1-c694-40e2-9cbd-2565aab00f12",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "A0fFPATsyzojraDa",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1o-lWFSCrjlPQnYKiy-azub-tjdxQufu-hANqMH-aowQ",
+          "mode": "list",
+          "cachedResultName": "teste_n8n",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1o-lWFSCrjlPQnYKiy-azub-tjdxQufu-hANqMH-aowQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Página1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1o-lWFSCrjlPQnYKiy-azub-tjdxQufu-hANqMH-aowQ/edit#gid=0"
+        },
+        "combineFilters": "OR",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        208,
+        0
+      ],
+      "id": "609d1c9f-b78e-4883-8726-f8b2241254a9",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "JmyacdQdQKEACRDH",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d7b5649f-0f4d-4b2a-91ba-47e5486afbe3",
+              "name": "Email",
+              "value": "={{ $json.Email }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "0ac438b6-7c47-482f-bea1-3cdddd4a7ea0",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenWeatherMap": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "OpenWeatherMap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e1c79ec7-673a-4ed9-8997-7a6a81106d05",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c6a9d7747bd0417e5a4901801a4567991e05f37201f867a8235ba82eabe53036"
+  },
+  "id": "uE7Md9MiUecw87IO",
+  "tags": []
+}
